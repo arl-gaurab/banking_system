@@ -114,12 +114,16 @@ body {
 
 /* Main Content Styles */
 .dashboard-container {
-    margin-left: 300px;
-    width: calc(100% - 300px);
+    margin-left: 280px;
+    width: calc(100% - 280px);
     min-height: 100vh;
-    padding: 20px;
+    padding: 0;
     box-sizing: border-box;
     background: #ecf0f1;
+}
+
+.dashboard-content {
+    padding: 2rem;
 }
 
 .dashboard-header {
@@ -955,3 +959,16 @@ input:checked + .slider:before {
     transform: translateX(26px);
 }
 
+/* Content Sections */
+.content-section {
+    display: none;
+    padding: 2rem;
+}
+
+.content-section.active {
+    display: block;
+}
+
+.dashboard-details.active {
+    display: block;
+}

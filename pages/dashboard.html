@@ -154,12 +154,8 @@
                         <!-- Transactions will be loaded here -->
                     </div>
                 </div>
-            </div>
 
-        </div>
-    </div>
-     
-            
+
             <!-- Accounts Section -->
             <div id="accounts" class="content-section">
                 <div class="section-header">
@@ -399,7 +395,129 @@
                         </div>
                         <button class="btn btn-outline">Change Password</button>
                     </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
 
 </div>
+
+<script>
+    function showSection(sectionName) {
+        const sections = document.querySelectorAll('.content-section');
+        const navItems = document.querySelectorAll('.nav-item');
+        const dashboardDetails = document.querySelector('.dashboard-details');
+
+        sections.forEach(section => {
+            section.classList.remove('active');
+        });
+
+        navItems.forEach(item => {
+            item.classList.remove('active');
+        });
+
+        if (sectionName === 'overview') {
+            dashboardDetails.style.display = 'block';
+        } else {
+            dashboardDetails.style.display = 'none';
+            const targetSection = document.getElementById(sectionName);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+        }
+
+        const activeNav = document.querySelector(`[data-section="${sectionName}"]`);
+        if (activeNav) {
+            activeNav.classList.add('active');
+        }
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = item.getAttribute('data-section');
+            showSection(section);
+        });
+    });
+
+    function logout() {
+        if (confirm('Are you sure you want to logout?')) {
+            window.location.href = '../pages/login.html';
+        }
+    }
+
+    const sampleTransactions = [
+        { description: 'Salary Deposit', category: 'Income', amount: '+$5,000.00', type: 'income', date: '2024-01-15' },
+        { description: 'Grocery Store', category: 'Food', amount: '-$125.50', type: 'expense', date: '2024-01-14' },
+        { description: 'Transfer to Savings', category: 'Transfer', amount: '-$500.00', type: 'transfer', date: '2024-01-13' },
+        { description: 'Electric Bill', category: 'Utilities', amount: '-$89.00', type: 'expense', date: '2024-01-12' },
+        { description: 'Freelance Project', category: 'Income', amount: '+$1,200.00', type: 'income', date: '2024-01-10' }
+    ];
+
+    function loadRecentTransactions() {
+        const list = document.getElementById('recentTransactionsList');
+        list.innerHTML = '';
+
+        sampleTransactions.slice(0, 5).forEach(transaction => {
+            const item = document.createElement('div');
+            item.className = 'transaction-item';
+            item.innerHTML = `
+                <div class="transaction-info">
+                    <div class="transaction-icon ${transaction.type}">
+                        <i class="fas fa-${transaction.type === 'income' ? 'arrow-down' : transaction.type === 'expense' ? 'arrow-up' : 'exchange-alt'}"></i>
+                    </div>
+                    <div class="transaction-details">
+                        <h4>${transaction.description}</h4>
+                        <p>${transaction.date}</p>
+                    </div>
+                </div>
+                <div class="transaction-amount ${transaction.amount.startsWith('+') ? 'positive' : 'negative'}">
+                    ${transaction.amount}
+                </div>
+            `;
+            list.appendChild(item);
+        });
+    }
+
+    function loadAllTransactions() {
+        const tbody = document.getElementById('transactionsTableBody');
+        tbody.innerHTML = '';
+
+        sampleTransactions.forEach(transaction => {
+            const row = document.createElement('div');
+            row.className = 'table-row';
+            row.innerHTML = `
+                <div class="table-cell">${transaction.date}</div>
+                <div class="table-cell">${transaction.description}</div>
+                <div class="table-cell">${transaction.category}</div>
+                <div class="table-cell" style="color: ${transaction.amount.startsWith('+') ? '#10b981' : '#ef4444'}">${transaction.amount}</div>
+                <div class="table-cell"><span style="padding: 0.25rem 0.75rem; background: #d1fae5; color: #10b981; border-radius: 6px; font-size: 0.8rem;">Completed</span></div>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    const transferForm = document.getElementById('transferForm');
+    const transferAmountInput = document.getElementById('transferAmount');
+
+    if (transferAmountInput) {
+        transferAmountInput.addEventListener('input', (e) => {
+            const amount = parseFloat(e.target.value) || 0;
+            document.getElementById('summaryAmount').textContent = `$${amount.toFixed(2)}`;
+            document.getElementById('summaryTotal').textContent = `$${amount.toFixed(2)}`;
+        });
+    }
+
+    if (transferForm) {
+        transferForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Transfer functionality will be connected to backend');
+        });
+    }
+
+    loadRecentTransactions();
+    loadAllTransactions();
+</script>
 </body>
 </html>
