@@ -111,6 +111,7 @@ if (mysqli_num_rows($check_transactions) === 0) {
     }
 }
 
+$transactions = [];
 $sql_transactions = "SELECT * FROM transactions WHERE user_id='$user_id' ORDER BY created_at DESC LIMIT 10";
 $result_transactions = mysqli_query($conn, $sql_transactions);
 
@@ -120,14 +121,43 @@ if ($result_transactions && mysqli_num_rows($result_transactions) > 0) {
     }
 }
 
+// Handle Password Change
+if (isset($_POST["change_password"])) {
+    $current_password = mysqli_real_escape_string($conn, $_POST["current_password"]);
+    $new_password = mysqli_real_escape_string($conn, $_POST["new_password"]);
+    $confirm_password = mysqli_real_escape_string($conn, $_POST["confirm_password"]);
+
+    $sql_check_password = "SELECT password FROM users WHERE id='$user_id'";
+    $result_check = mysqli_query($conn, $sql_check_password);
+    $row_check = mysqli_fetch_assoc($result_check);
+
+    if ($row_check['password'] !== $current_password) {
+        echo "<script>alert('❌ Current password is incorrect!');</script>";
+    } elseif ($new_password !== $confirm_password) {
+        echo "<script>alert('❌ New passwords do not match!');</script>";
+    } elseif (strlen($new_password) < 6) {
+        echo "<script>alert('❌ Password must be at least 6 characters long!');</script>";
+    } else {
+        $sql_update_password = "UPDATE users SET password='$new_password' WHERE id='$user_id'";
+        if (mysqli_query($conn, $sql_update_password)) {
+            echo "<script>
+                alert('✅ Password changed successfully!');
+                window.location.href='dashboard.php';
+            </script>";
+        } else {
+            echo "<script>alert('❌ Error changing password: " . mysqli_error($conn) . "');</script>";
+        }
+    }
+}
+
 // Handle Profile Update
 if (isset($_POST["update_profile"])) {
     $setting_name = mysqli_real_escape_string($conn, $_POST["setting_name"]);
     $setting_email = mysqli_real_escape_string($conn, $_POST["setting_email"]);
     $setting_phone = mysqli_real_escape_string($conn, $_POST["setting_phone"]);
 
-    $sql_setting_update = "UPDATE users 
-                           SET username='$setting_name', email='$setting_email', phone='$setting_phone' 
+    $sql_setting_update = "UPDATE users
+                           SET username='$setting_name', email='$setting_email', phone='$setting_phone'
                            WHERE id='$user_id'";
 
     if (mysqli_query($conn, $sql_setting_update)) {
@@ -608,7 +638,7 @@ if (!empty($transactions)) {
 if (!empty($transactions)) {
     foreach ($transactions as $t) {
         echo "
-        <div class='table-row'>
+        <div class='table-row' data-type='{$t['type']}'>
             <div class='table-cell'>{$t['created_at']}</div>
             <div class='table-cell'>{$t['from_account']}</div>
             <div class='table-cell'>" . ucfirst($t['type']) . "</div>
@@ -617,7 +647,7 @@ if (!empty($transactions)) {
         </div>";
     }
 } else {
-    echo "<div class='table-row'><div class='table-cell' colspan='5'>No transactions yet.</div></div>";
+    echo "<div class='table-row'><div class='table-cell' style='grid-column: 1 / -1; text-align: center;'>No transactions yet.</div></div>";
 }
 ?>
 </div>
@@ -781,7 +811,7 @@ if (!empty($transactions)) {
                                 </label>
                             </div>
                         </div>
-                        <button class="btn btn-outline">Change Password</button>
+                        <button class="btn btn-outline" onclick="showPasswordModal()">Change Password</button>
                     </div>
                 </div>
             </div>
