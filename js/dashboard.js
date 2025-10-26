@@ -40,18 +40,7 @@ function setupTransferForm() {
 }
 
 function loadTransactions() {
-    const recentList = document.getElementById('recentTransactionsList');
-    const tableBody = document.getElementById('transactionsTableBody');
-
-    if (recentList) {
-        recentList.innerHTML = '';
-        // Recent transactions will be loaded from PHP
-    }
-
-    if (tableBody) {
-        tableBody.innerHTML = '';
-        // All transactions will be loaded from PHP
-    }
+    // Transactions are already loaded from PHP, no need to clear them
 }
 
 function setupNavigation() {
