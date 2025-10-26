@@ -111,16 +111,6 @@ if (mysqli_num_rows($check_transactions) === 0) {
     }
 }
 
-$transactions = [];
-$sql_transactions = "SELECT * FROM transactions WHERE user_id='$user_id' ORDER BY created_at DESC LIMIT 10";
-$result_transactions = mysqli_query($conn, $sql_transactions);
-
-if ($result_transactions && mysqli_num_rows($result_transactions) > 0) {
-    while($row = mysqli_fetch_assoc($result_transactions)) {
-        $transactions[] = $row;
-    }
-}
-
 // Handle Password Change
 if (isset($_POST["change_password"])) {
     $current_password = mysqli_real_escape_string($conn, $_POST["current_password"]);
@@ -132,21 +122,36 @@ if (isset($_POST["change_password"])) {
     $row_check = mysqli_fetch_assoc($result_check);
 
     if ($row_check['password'] !== $current_password) {
-        echo "<script>alert('❌ Current password is incorrect!');</script>";
+        echo "<script>alert('Current password is incorrect!'); window.location.href='dashboard.php';</script>";
+        exit();
     } elseif ($new_password !== $confirm_password) {
-        echo "<script>alert('❌ New passwords do not match!');</script>";
+        echo "<script>alert('New passwords do not match!'); window.location.href='dashboard.php';</script>";
+        exit();
     } elseif (strlen($new_password) < 6) {
-        echo "<script>alert('❌ Password must be at least 6 characters long!');</script>";
+        echo "<script>alert('Password must be at least 6 characters long!'); window.location.href='dashboard.php';</script>";
+        exit();
     } else {
         $sql_update_password = "UPDATE users SET password='$new_password' WHERE id='$user_id'";
         if (mysqli_query($conn, $sql_update_password)) {
             echo "<script>
-                alert('✅ Password changed successfully!');
+                alert('Password changed successfully!');
                 window.location.href='dashboard.php';
             </script>";
+            exit();
         } else {
-            echo "<script>alert('❌ Error changing password: " . mysqli_error($conn) . "');</script>";
+            echo "<script>alert('Error changing password'); window.location.href='dashboard.php';</script>";
+            exit();
         }
+    }
+}
+
+$transactions = [];
+$sql_transactions = "SELECT * FROM transactions WHERE user_id='$user_id' ORDER BY created_at DESC";
+$result_transactions = mysqli_query($conn, $sql_transactions);
+
+if ($result_transactions && mysqli_num_rows($result_transactions) > 0) {
+    while($row = mysqli_fetch_assoc($result_transactions)) {
+        $transactions[] = $row;
     }
 }
 
@@ -535,11 +540,16 @@ if (mysqli_num_rows($result_amount) > 0) {
                    <div class="transactions-list" id="recentTransactionsList">
 <?php
 if (!empty($transactions)) {
+    $recent_count = 0;
     foreach ($transactions as $t) {
-        // Choose icon and color based on type
+        if ($recent_count >= 10) break;
+
         $icon = $t['type'] === 'income' ? 'fa-arrow-down' : 'fa-arrow-up';
         $colorClass = $t['type'] === 'income' ? 'positive' : 'negative';
         $amountPrefix = $t['type'] === 'income' ? '+' : '-';
+
+        $description = !empty($t['description']) ? $t['description'] : 'Transaction';
+        $from_to = !empty($t['to_account']) ? $t['to_account'] : (!empty($t['from_account']) ? $t['from_account'] : 'N/A');
 
         echo "
         <div class='transaction-item'>
@@ -547,16 +557,18 @@ if (!empty($transactions)) {
                 <i class='fas $icon'></i>
             </div>
             <div class='transaction-details'>
-                <p class='transaction-title'>{$t['description']}</p>
-                <p class='transaction-date'>{$t['created_at']}</p>
+                <p class='transaction-title'>$description</p>
+                <p class='transaction-date'>" . date('M d, Y H:i', strtotime($t['created_at'])) . "</p>
             </div>
             <div class='transaction-amount $colorClass'>
                 {$amountPrefix}Rs" . number_format($t['amount'], 2) . "
             </div>
         </div>";
+
+        $recent_count++;
     }
 } else {
-    echo "<p style='color: #999;'>No recent transactions.</p>";
+    echo "<p style='color: #999; text-align: center; padding: 2rem;'>No recent transactions.</p>";
 }
 ?>
 </div>
@@ -637,17 +649,21 @@ if (!empty($transactions)) {
 <?php
 if (!empty($transactions)) {
     foreach ($transactions as $t) {
+        $date = date('M d, Y H:i', strtotime($t['created_at']));
+        $from = !empty($t['from_account']) ? $t['from_account'] : 'N/A';
+        $description = !empty($t['description']) ? $t['description'] : 'Transaction';
+
         echo "
         <div class='table-row' data-type='{$t['type']}'>
-            <div class='table-cell'>{$t['created_at']}</div>
-            <div class='table-cell'>{$t['from_account']}</div>
+            <div class='table-cell'>$date</div>
+            <div class='table-cell'>$from</div>
             <div class='table-cell'>" . ucfirst($t['type']) . "</div>
             <div class='table-cell'>Rs" . number_format($t['amount'], 2) . "</div>
-            <div class='table-cell'>{$t['description']}</div>
+            <div class='table-cell'>$description</div>
         </div>";
     }
 } else {
-    echo "<div class='table-row'><div class='table-cell' style='grid-column: 1 / -1; text-align: center;'>No transactions yet.</div></div>";
+    echo "<div class='table-row'><div class='table-cell' style='grid-column: 1 / -1; text-align: center; padding: 2rem;'>No transactions yet.</div></div>";
 }
 ?>
 </div>
